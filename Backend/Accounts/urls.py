@@ -9,6 +9,9 @@ from .views import (
     LogoutAPIView,
     UserRetrieveUpdateAPIView,
     ChangePasswordView,
+    PasswordResetRequestEmailView,
+    PasswordResetTokenCheckAPIView,
+    PasswordResetSetNewPasswordAPIView,
 )
 from .face import RegisterFaceAPIView, RecognizeCheckAPIView
 
@@ -21,6 +24,10 @@ urlpatterns = [
 
     path("face/register/", RegisterFaceAPIView.as_view(), name="register-face"),
     path("face/verify/", RecognizeCheckAPIView.as_view(), name="verify-face-check"),
+
+    path("password/reset/", PasswordResetRequestEmailView.as_view(), name="reset-password"),
+    path("password/reset/validate_token/<uidb64>/<token>/", PasswordResetTokenCheckAPIView.as_view(), name="reset-password-validate-token"),
+    path("password/reset/complete/", PasswordResetSetNewPasswordAPIView.as_view(), name="reset-password-complete"),
 
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

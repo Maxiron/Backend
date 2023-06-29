@@ -11,6 +11,7 @@ import os
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
+    PermissionsMixin,
 )
 from django.db import models
 
@@ -56,7 +57,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(db_index=True, unique=True, null=False)
 

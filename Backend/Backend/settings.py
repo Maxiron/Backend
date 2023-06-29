@@ -90,7 +90,7 @@ ROOT_URLCONF = 'Backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -125,6 +125,9 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 AUTH_USER_MODEL = "Accounts.CustomUser"
+
+# SITE SETTINGS
+SITE_ID = 1
 
 
 # Password validation
@@ -209,3 +212,15 @@ SIMPLE_JWT = {
 
 
 DJANGO_REST_LOOKUP_FIELD = "custom_email_field"
+
+# EMAIL SETTINGS
+# Twilio SendGrid
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = os.getenv(str("SENDGRID_API_KEY"))
+FROM_EMAIL = "support@aaron.com"
+DEFAULT_FROM_EMAIL = f"Maxiron <{FROM_EMAIL}>"
+

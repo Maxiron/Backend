@@ -199,6 +199,13 @@ class PasswordResetRequestEmailView(GenericAPIView):
     serializer_class = PasswordResetRequestEmailViewSerializer
 
     def post(self, request):
+        """
+        params: email, redirect_url
+
+                email: User's email
+                redirect_url: Frontend url to redirect to password reset email sent page
+        """
+
         serializer = self.serializer_class(data=request.data)
         email = request.data.get("email") or ""
 
@@ -206,9 +213,9 @@ class PasswordResetRequestEmailView(GenericAPIView):
             user = CustomUser.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(force_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            current_site = get_current_site(request=request).domain
+            current_site = get_current_site(request=request).domain # "127.0.0.1:8000"
             relativeLink = reverse(
-                "password_reset_confirm", kwargs={"uidb64": uidb64, "token": token}
+                "reset-password-validate-token", kwargs={"uidb64": uidb64, "token": token}
             )
 
             redirect_url = request.data.get("redirect_url") or ""
@@ -233,19 +240,30 @@ class PasswordResetRequestEmailView(GenericAPIView):
             send_email.content_subtype = "html"
             # send_email.send(fail_silently=True)
             EmailThread(send_email).start()
+            print(send_email)
+            print(message)
+
+            response = {
+                "status": "success",
+                "message": "We have sent you a link to reset your password",
+            }
             return Response(
-                {"true": "We have sent you a link to reset your password"},
+                response,
                 status=status.HTTP_200_OK,
             )
 
         else:
+            response = {
+                "status": "failed",
+                "message": "This email doesn't belong to any account"
+            }
             return Response(
-                {"error": "This email doesn't belong to any account"},
+                response,
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
 
-class PasswordResetTokenCheckAPI(APIView):
+class PasswordResetTokenCheckAPIView(APIView):
     serializer_class = SetNewPasswordSerializer
 
     def get(self, request, uidb64, token):
@@ -294,8 +312,13 @@ class PasswordResetSetNewPasswordAPIView(GenericAPIView):
     def patch(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        response = {
+            'status': 'success',
+            'message': 'Password Successfully Updated'
+        }
         return Response(
-            {"true": True, "message": "Password reset true"},
+            response,
             status=status.HTTP_200_OK,
         )
 
