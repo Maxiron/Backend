@@ -10,7 +10,7 @@ from .views import (
     UserRetrieveUpdateAPIView,
     ChangePasswordView,
 )
-from .face import RegisterFaceAPIView, RecognizeAPIView, RecognizeCheckAPIView
+from .face import RegisterFaceAPIView, RecognizeCheckAPIView
 
 urlpatterns = [
     path("register/", RegistrationAPIView.as_view(), name="register"),
@@ -20,10 +20,7 @@ urlpatterns = [
     path("password/change/", ChangePasswordView.as_view(), name="change-password"),
 
     path("face/register/", RegisterFaceAPIView.as_view(), name="register-face"),
-
-
-    path("verify-face/", RecognizeAPIView.as_view(), name="verify-face"),
-    path("verify-face-check/", RecognizeCheckAPIView.as_view(), name="verify-face-check"),
+    path("face/verify/", RecognizeCheckAPIView.as_view(), name="verify-face-check"),
 
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
