@@ -1,5 +1,5 @@
 # Third party imports
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 from types import MethodType
 
@@ -13,10 +13,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 # own imports
 from .models import FaceEmbedding, CustomUser
 from .utils import Functions
+from .serializers import UpdateUserSerializer
 
 import torch
 from torchvision.transforms import functional as F
-from facenet_pytorch import MTCNN, InceptionResnetV1
+from facenet_pytorch import extract_face
 from sklearn.metrics.pairwise import cosine_similarity
 
 
@@ -96,10 +97,13 @@ class RecognizeCheckAPIView(APIView):
     parser_classes = (MultiPartParser, FormParser,)
     def post(self, request, format=None):
         # Load the MTCNN and FaceNet models
-        mtcnn, facenet = self.load_models()
+        mtcnn, facenet = Functions.load_models()
 
         # Get the uploaded image
         image_file = request.FILES.get('image')
+
+        # Get the user level
+        level = request.data.get('level')
 
         # Open the uploaded image
         try:
@@ -107,21 +111,42 @@ class RecognizeCheckAPIView(APIView):
         except:
             return Response({'message': 'Invalid image file'}, status=status.HTTP_400_BAD_REQUEST)
 
+        
         # Convert image to RGB
         image = image.convert('RGB')
 
-        # Resize the image to 160x160 pixels
+        # Save the image to a temporary file
+        image.save('temp1.jpg')
 
         # Detect faces in the image
         boxes, _ = mtcnn.detect(image)
-        print(len(boxes))
 
-        if boxes is None or len(boxes) == 0:
-            return Response({'message': 'No faces detected in image'}, status=status.HTTP_400_BAD_REQUEST)
+        '''
+        boxes, probs, points = mtcnn.detect(image, landmarks=True)
+        # Draw boxes and save faces
+        img_draw = image.copy()
+        draw = ImageDraw.Draw(img_draw)
+        for i, (box, point) in enumerate(zip(boxes, points)):
+            draw.rectangle(box.tolist(), width=5)
+            for p in point:
+                draw.rectangle((p - 10).tolist() + (p + 10).tolist(), width=10)
+            extract_face(image, box, save_path='detected_face_{}.png'.format(i))
+        img_draw.save('annotated_faces.png')
+        '''
         
-        if len(boxes) > 1:
-            return Response({'message': 'Multiple faces detected in image'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if boxes is None:
+            response = {
+                'status': 'failed',
+                'message': 'No faces detected in image'
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)  
+        if len(boxes) > 1:
+            response = {
+                'status': 'failed',
+                'message': 'Multiple faces detected in image'
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         
         # Generate the embedding for the captured face
         '''
@@ -135,6 +160,17 @@ class RecognizeCheckAPIView(APIView):
         These coordinates define the region of the image containing the face.
         '''        
         x1, y1, x2, y2 = box
+        
+        '''
+        # Draw the bounding box around the detected face region and save the image
+        draw = ImageDraw.Draw(image)
+        draw.rectangle([(x1, y1), (x2, y2)], outline="red", width=2)
+
+        # Save the image with the bounding box
+        image_with_box_path = 'image_with_box.jpg'
+        image.save(image_with_box_path)
+        '''
+
 
         '''
         Crop the original image using the coordinates of the bounding box
@@ -166,27 +202,65 @@ class RecognizeCheckAPIView(APIView):
         embedding = facenet(face_tensor.unsqueeze(0)).detach().numpy()[0]
 
 
-        # Load the face embeddings from the database
-        # face_embeddings = FaceEmbedding.objects.all()
-        # if not face_embeddings.exists():
-        #     return Response({'message': 'No faces in database'}, status=status.HTTP_404_NOT_FOUND)
-        from .list import embeddingss
-        existing_embedding = embeddingss.reshape(1, -1)
+        # Filter the Face embedding database table by Level and get the embeddings of all users in that level
+        face_embeddings = FaceEmbedding.objects.filter(user__level=level)
+        # print(len(face_embeddings))
+
+        # If there are no embeddings in the database, return a message
+        if not face_embeddings:
+            response = {
+                'status': 'failed',
+                'message': 'No face embeddings found for this level'
+                }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        # Convert the byte embeddings from the database to NumPy arrays
+        existing_embeddings = [np.frombuffer(face_embedding.embedding, dtype=np.float32).reshape(1, -1) for face_embedding in face_embeddings]
+        
+        # Concatenate the array of arrays into a single 2D array
+        existing_embeddings = np.concatenate(existing_embeddings, axis=0)
+
         new_embedding = np.array(embedding).reshape(1, -1)
 
         # Calculate the cosine similarity between the captured embedding and database embeddings
-        # similarities = cosine_similarity([embedding], face_embeddings.values_list('embedding', flat=True))
-        similarities = cosine_similarity(new_embedding, existing_embedding)
-        print(similarities)
+        similarities = cosine_similarity(new_embedding, existing_embeddings)
 
         # Find the index of the highest similarity
         closest_index = np.argmax(similarities)
+        # print(closest_index)
 
         # Check if the similarity is above a threshold
         threshold = 0.75  # Adjust the threshold as needed
         if similarities[0, closest_index] > threshold:
-            # match = face_embeddings[closest_index].name
-            # match = embeddingss[closest_index].name
-            return Response({'message': 'Matching face found in database', 'match': "match"})
+            # Get the user corresponding to the highest similarity in the database
+            user = face_embeddings[closest_index.item()].user
+
+            # Get similarity score
+            similarity_score = similarities[0, closest_index].item()
+
+            # Convert the similarity score to a percentage
+            similarity_score_percentage = round(similarity_score * 100, 2)
+
+            # Return the user details
+            user = UpdateUserSerializer(user).data
+
+            response = {
+                'status': 'success',
+                'message': 'Matching face found in database',
+                'similarity_score': f"{similarity_score_percentage}%",
+                'user': user
+            }
+
+            return Response(response, status=status.HTTP_200_OK)
         else:
-            return Response({'message': 'No matching face found in database'}, status=status.HTTP_404_NOT_FOUND)
+            # Get similarity score
+            similarity_score = similarities[0, closest_index].item()
+
+            # Convert the similarity score to a percentage
+            similarity_score_percentage = round(similarity_score * 100, 2)
+            response = {
+                'status': 'failed',
+                'message': 'No matching face found in database',
+                'similarity_score': f"{similarity_score_percentage}%",
+            }
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
