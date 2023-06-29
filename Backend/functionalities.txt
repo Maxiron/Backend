@@ -1,0 +1,19 @@
+Students Login & Register 
+ -Students Profile
+ -Students Courses
+
+Staff Login
+ -Staff Dashboard 
+
+Functionalities 
+1. Students can create account using their unique reg no and other necessary details 
+2. On registration, Students will verify face ID
+3. Students will be able to register courses they are to sit for - before the examination 
+4. Students can update certain details such as Level 
+5. Students can update Face but will require approval from the Staff user
+
+6. Staff can view all Students 
+7. Staff can search Students by name to retrieve specific Student
+8. Staff can scan for specific student using Face - this will be used to verify Students authenticity in examinations
+9. Staff can Delete all Students of a class - in event of their graduation 
+10. Staff can update every Students' details.
