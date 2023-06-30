@@ -14,6 +14,10 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
+# Third party imports
+import cloudinary
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -47,6 +51,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
 
+    # Third party apps
+
     # Apps
     "Accounts",
     "Core",
@@ -61,29 +67,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
-
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "WARNING",
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
-        },
-    },
-}
 
 ROOT_URLCONF = 'Backend.urls'
 
@@ -117,8 +100,21 @@ DATABASES = {
         "HOST": "localhost",
         "USER": "root",
         "PASSWORD": "Database1234!",
-    }
+    },
+    "production": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "final_project",
+        "PORT": "3306",
+        "HOST": "localhost",
+        "USER": "root",
+        "PASSWORD": "Database1234!",
+    },
 }
+
+# Use the production database if ENV=="PROD"
+if config("ENV") == "PROD":
+    DATABASES["default"] = DATABASES["production"]
+
 
 # Auth Settings
 ACCOUNT_EMAIL_VERIFICATION = "none"
@@ -220,7 +216,17 @@ EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = "apikey"
-EMAIL_HOST_PASSWORD = os.getenv(str("SENDGRID_API_KEY"))
+EMAIL_HOST_PASSWORD = config("SENDGRID_API_KEY")
 FROM_EMAIL = "support@aaron.com"
 DEFAULT_FROM_EMAIL = f"Maxiron <{FROM_EMAIL}>"
+
+
+# CLOUDINARY SETTINGS
+cloudinary.config(
+    cloud_name= config("CLOUDINARY_CLOUD_NAME"),
+    api_key= config("CLOUDINARY_API_KEY"),
+    api_secret= config("CLOUDINARY_API_SECRET"),
+    secure= True,
+)
+
 

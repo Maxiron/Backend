@@ -18,6 +18,7 @@ from django.db import models
 # Third party imports
 import numpy as np
 from cloudinary.models import CloudinaryField
+from decouple import config
 
 
 class UserManager(BaseUserManager):
@@ -123,7 +124,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
                 "https://res.cloudinary.com/dxyyxfosd/pyzjrq7bnywos6r9thpp"
             )
         return (
-                f"https://res.cloudinary.com/{str(os.getenv('CLOUDINARY_CLOUD_NAME'))}/{self.profile_picture}"
+                f"https://res.cloudinary.com/{config('CLOUDINARY_CLOUD_NAME')}/{self.profile_picture}"
             )
     
 
