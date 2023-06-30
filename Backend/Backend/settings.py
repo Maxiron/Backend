@@ -14,6 +14,10 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
+# Third party imports
+import cloudinary
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,7 +31,7 @@ SECRET_KEY = 'django-insecure-didf%f9j_-!=iz2+43zs_mt9_^)gb9z-k!tv+48)ohh=*axvfv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -47,6 +51,8 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
 
+    # Third party apps
+
     # Apps
     "Accounts",
     "Core",
@@ -62,35 +68,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "WARNING",
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
-        },
-    },
-}
-
 ROOT_URLCONF = 'Backend.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -117,14 +100,30 @@ DATABASES = {
         "HOST": "localhost",
         "USER": "root",
         "PASSWORD": "Database1234!",
-    }
+    },
+    "production": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "final_project",
+        "PORT": "3306",
+        "HOST": "localhost",
+        "USER": "root",
+        "PASSWORD": "Database1234!",
+    },
 }
+
+# Use the production database if ENV=="PROD"
+if config("ENV") == "PROD":
+    DATABASES["default"] = DATABASES["production"]
+
 
 # Auth Settings
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 AUTH_USER_MODEL = "Accounts.CustomUser"
+
+# SITE SETTINGS
+SITE_ID = 1
 
 
 # Password validation
@@ -209,3 +208,25 @@ SIMPLE_JWT = {
 
 
 DJANGO_REST_LOOKUP_FIELD = "custom_email_field"
+
+# EMAIL SETTINGS
+# Twilio SendGrid
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = config("SENDGRID_API_KEY")
+FROM_EMAIL = "support@aaron.com"
+DEFAULT_FROM_EMAIL = f"Maxiron <{FROM_EMAIL}>"
+
+
+# CLOUDINARY SETTINGS
+cloudinary.config(
+    cloud_name= config("CLOUDINARY_CLOUD_NAME"),
+    api_key= config("CLOUDINARY_API_KEY"),
+    api_secret= config("CLOUDINARY_API_SECRET"),
+    secure= True,
+)
+
+

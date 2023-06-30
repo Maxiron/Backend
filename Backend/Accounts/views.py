@@ -3,6 +3,9 @@
 
 # Python imports
 
+# Third party imports
+from cloudinary.uploader import destroy
+
 # Django imports
 from django.conf import settings
 from django.contrib.auth import authenticate
@@ -199,6 +202,13 @@ class PasswordResetRequestEmailView(GenericAPIView):
     serializer_class = PasswordResetRequestEmailViewSerializer
 
     def post(self, request):
+        """
+        params: email, redirect_url
+
+                email: User's email
+                redirect_url: Frontend url to redirect to password reset email sent page
+        """
+
         serializer = self.serializer_class(data=request.data)
         email = request.data.get("email") or ""
 
@@ -206,9 +216,9 @@ class PasswordResetRequestEmailView(GenericAPIView):
             user = CustomUser.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(force_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            current_site = get_current_site(request=request).domain
+            current_site = get_current_site(request=request).domain # "127.0.0.1:8000"
             relativeLink = reverse(
-                "password_reset_confirm", kwargs={"uidb64": uidb64, "token": token}
+                "reset-password-validate-token", kwargs={"uidb64": uidb64, "token": token}
             )
 
             redirect_url = request.data.get("redirect_url") or ""
@@ -233,19 +243,30 @@ class PasswordResetRequestEmailView(GenericAPIView):
             send_email.content_subtype = "html"
             # send_email.send(fail_silently=True)
             EmailThread(send_email).start()
+            print(send_email)
+            print(message)
+
+            response = {
+                "status": "success",
+                "message": "We have sent you a link to reset your password",
+            }
             return Response(
-                {"true": "We have sent you a link to reset your password"},
+                response,
                 status=status.HTTP_200_OK,
             )
 
         else:
+            response = {
+                "status": "failed",
+                "message": "This email doesn't belong to any account"
+            }
             return Response(
-                {"error": "This email doesn't belong to any account"},
+                response,
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
 
-class PasswordResetTokenCheckAPI(APIView):
+class PasswordResetTokenCheckAPIView(APIView):
     serializer_class = SetNewPasswordSerializer
 
     def get(self, request, uidb64, token):
@@ -294,25 +315,42 @@ class PasswordResetSetNewPasswordAPIView(GenericAPIView):
     def patch(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        response = {
+            'status': 'success',
+            'message': 'Password Successfully Updated'
+        }
         return Response(
-            {"true": True, "message": "Password reset true"},
+            response,
             status=status.HTTP_200_OK,
         )
 
 
-class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
+class UserRetrieveUpdateAPIView(APIView):
     queryset = CustomUser.objects.all()
     permission_classes = (IsAuthenticated,)
     renderer_classes = (UserJSONRenderer,)
     serializer_class = UpdateUserSerializer
     parser_classes = (MultiPartParser, FormParser)
 
-    def get_object(self):
-        return self.request.user
+    def get(self, request, *args, **kwargs):
+        serializer = self.serializer_class(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def update(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+    def patch(self, request, *args, **kwargs):
+        data = request.data
+        serializer = self.serializer_class(request.user, data, partial=True)
+        if not serializer.is_valid():
+            response = {"status": "failed", "message": serializer.errors}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if profile picture is in request
+        if "profile_picture" in data:
+            # Delete old profile picture
+            if request.user.profile_picture:
+                # Get the old profile picture
+                old_profile_picture = request.user.profile_picture
+                destroy(old_profile_picture.public_id)
+
+        serializer.save(profile_picture=data["profile_picture"])
         return Response(serializer.data, status=status.HTTP_200_OK)

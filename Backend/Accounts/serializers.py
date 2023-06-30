@@ -78,6 +78,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             "is_verified",
             "is_staff",            
         )
+        read_only_fields = ["email", "password", "first_name", "last_name", "is_active", "matric_no", "is_verified", "is_staff"]
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation.pop("profile_picture")

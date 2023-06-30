@@ -115,8 +115,10 @@ class RecognizeCheckAPIView(APIView):
         # Convert image to RGB
         image = image.convert('RGB')
 
+        '''
         # Save the image to a temporary file
         image.save('temp1.jpg')
+        '''
 
         # Detect faces in the image
         boxes, _ = mtcnn.detect(image)

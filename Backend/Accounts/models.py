@@ -11,12 +11,14 @@ import os
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
+    PermissionsMixin,
 )
 from django.db import models
 
 # Third party imports
 import numpy as np
 from cloudinary.models import CloudinaryField
+from decouple import config
 
 
 class UserManager(BaseUserManager):
@@ -56,7 +58,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(db_index=True, unique=True, null=False)
 
@@ -122,7 +124,7 @@ class CustomUser(AbstractBaseUser):
                 "https://res.cloudinary.com/dxyyxfosd/pyzjrq7bnywos6r9thpp"
             )
         return (
-                f"https://res.cloudinary.com/{str(os.getenv('CLOUDINARY_CLOUD_NAME'))}/{self.profile_picture}"
+                f"https://res.cloudinary.com/{config('CLOUDINARY_CLOUD_NAME')}/{self.profile_picture}"
             )
     
 
