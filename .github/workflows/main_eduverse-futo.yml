@@ -29,7 +29,13 @@ jobs:
           
       - name: Print Current directory
         run: ls
-            
+        
+      - name: Change directory
+        run: cd Backend
+        
+      - name: Print Current directory
+        run: ls
+        
       - name: Install dependencies
         run: pip install -r requirements.txt
         
