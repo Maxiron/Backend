@@ -17,3 +17,6 @@ Functionalities
 8. Staff can scan for specific student using Face - this will be used to verify Students authenticity in examinations
 9. Staff can Delete all Students of a class - in event of their graduation 
 10. Staff can update every Students' details.
+
+
+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

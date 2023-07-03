@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "undefined/subscriptions/89ca2a13-8d1e-4f2c-93fd-be17d3e47916/resourceGroups/Final-Project/providers/Microsoft.Web/sites/test-django-app-maxiron",
+    "appService.deploySubpath": "."
+}
