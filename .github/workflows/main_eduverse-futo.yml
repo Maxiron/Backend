@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'eduverse-futo'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_383FBA5733FA4A4A886880BDAEAC9524 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_36073356BCA84E23866B68BE80428C02 }}
