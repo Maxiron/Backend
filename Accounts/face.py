@@ -81,6 +81,10 @@ class RegisterFaceAPIView(APIView):
         face_embedding.set_embedding(embedding)
         face_embedding.save()
 
+        # Verify user
+        user.is_verified = True
+        user.save()
+
 
         response = {
             'status': 'success',
