@@ -147,24 +147,26 @@ class LogoutAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request):
-        user = request.user
-        refresh_token = request.data["refresh"]
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                print(token)
-                token.blacklist()
+        try:
+            refresh_token = request.data["refresh"]
+            if refresh_token:
+                try:
+                    token = RefreshToken(refresh_token)
+                    print(token)
+                    token.blacklist()
 
-                # TODO
-                # set up a cron job on server which runs a command
-                # to delete blacklisted or expired tokens
-                return Response(status=status.HTTP_205_RESET_CONTENT)
-            except Exception as e:
-                response = {"error": str(e)}
+                    # TODO
+                    # set up a cron job on server which runs a command
+                    # to delete blacklisted or expired tokens
+                    return Response(status=status.HTTP_205_RESET_CONTENT)
+                except Exception as e:
+                    response = {"error": str(e)}
+                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                response = {"error": "Refresh token not provided"}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            response = {"error": "Refresh token not provided"}
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ChangePasswordView(UpdateAPIView):
@@ -175,27 +177,31 @@ class ChangePasswordView(UpdateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def update(self, request, *args, **kwargs):
-        self.user = self.request.user
-        serializer = self.get_serializer(data=request.data)
+        try:
+            self.user = self.request.user
+            serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            # Check old password
-            if not self.user.check_password(serializer.data.get("old_password")):
-                return Response(
-                    {"old_password": ["Wrong password."]},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            # set_password also hashes the password that the user will get
-            self.user.set_password(serializer.data.get("new_password"))
-            self.user.save()
-            response = {
-                "status": "true",
-                "message": "Password updated Successfully",
-            }
+            if serializer.is_valid():
+                # Check old password
+                if not self.user.check_password(serializer.data.get("old_password")):
+                    return Response(
+                        {"old_password": ["Wrong password."]},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                # set_password also hashes the password that the user will get
+                self.user.set_password(serializer.data.get("new_password"))
+                self.user.save()
+                response = {
+                    "status": "success",
+                    "message": "Password updated Successfully",
+                }
 
-            return Response(response, status=status.HTTP_200_OK)
+                return Response(response, status=status.HTTP_200_OK)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PasswordResetRequestEmailView(GenericAPIView):
@@ -313,17 +319,28 @@ class PasswordResetSetNewPasswordAPIView(GenericAPIView):
     serializer_class = SetNewPasswordSerializer
 
     def patch(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-        response = {
-            'status': 'success',
-            'message': 'Password Successfully Updated'
-        }
-        return Response(
-            response,
-            status=status.HTTP_200_OK,
-        )
+            response = {
+                'status': 'success',
+                'message': 'Password Successfully Updated'
+            }
+            return Response(
+                response,
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            response = {
+                'status': 'failed',
+                'message': f"{e}"
+            }
+            return Response(
+                response,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
 
 
 class UserRetrieveUpdateAPIView(APIView):
@@ -352,5 +369,7 @@ class UserRetrieveUpdateAPIView(APIView):
                 old_profile_picture = request.user.profile_picture
                 destroy(old_profile_picture.public_id)
 
-        serializer.save(profile_picture=data["profile_picture"])
+            serializer.save(profile_picture=data["profile_picture"])
+        else:
+            serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)

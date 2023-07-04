@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-didf%f9j_-!=iz2+43zs_mt9_^)gb9z-k!tv+48)ohh=*axvfv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["eduverse-futo.azurewebsites.net", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["eduverse-api.azurewebsites.net", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -115,6 +115,7 @@ DATABASES = {
 # Use the production database if ENV=="PROD"
 if config("ENV") == "PROD":
     DATABASES["default"] = DATABASES["production"]
+    print("Using production database")
 
 
 # Auth Settings
