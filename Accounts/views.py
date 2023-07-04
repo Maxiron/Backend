@@ -152,7 +152,6 @@ class LogoutAPIView(APIView):
             if refresh_token:
                 try:
                     token = RefreshToken(refresh_token)
-                    print(token)
                     token.blacklist()
 
                     # TODO

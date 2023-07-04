@@ -115,7 +115,7 @@ DATABASES = {
 # Use the production database if ENV=="PROD"
 if config("ENV") == "PROD":
     DATABASES["default"] = DATABASES["production"]
-    print("Using production database")
+    
 
 
 # Auth Settings
