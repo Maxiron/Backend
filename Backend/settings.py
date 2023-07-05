@@ -127,6 +127,24 @@ AUTH_USER_MODEL = "Accounts.CustomUser"
 # SITE SETTINGS
 SITE_ID = 1
 
+# CORS SETTINGS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS_ORIGIN_WHITELIST = (
+#     'http://my-react-app.com',
+#     'http://localhost:3000',
+# )
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
