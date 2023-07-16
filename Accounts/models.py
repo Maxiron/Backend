@@ -80,6 +80,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     level = models.CharField(max_length=3, choices=LEVEL_CHOICES, null=False)
 
+    option = models.CharField(max_length=120, null=True)
+
     matric_no = models.CharField(max_length=20, unique=True, null=False)
 
     # This field is used to determine if the user has verified his/her face
@@ -126,6 +128,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return (
                 f"https://res.cloudinary.com/{config('CLOUDINARY_CLOUD_NAME')}/{self.profile_picture}"
             )
+    
+    # Get full name of user, add the middle name if it exists
+    def get_full_name(self):
+        if self.middle_name is not None:
+            return f"{self.first_name} {self.middle_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name}"
     
 
 # Define the Django models for storing the face embeddings and names

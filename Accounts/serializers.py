@@ -10,7 +10,6 @@
 # django imports
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import (
-    smart_str,
     force_str,
 )
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -82,6 +81,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
             "profile_picture_url",
             "is_active",
             "level",
+            "option",
             "matric_no",
             "is_verified",
             "is_staff",            
@@ -142,58 +142,4 @@ class FaceEmbeddingSerializer(serializers.ModelSerializer):
     class Meta:
         model = FaceEmbedding
         fields = ('id', 'user', 'embedding')
-
-
-
-# Serializer to serialize base64 image and normal image
-# class Base64ImageField(serializers.ImageField):
-#     """
-#     A django-rest-framework field for handling image-uploads through raw post data.
-#     It uses base64 for encoding and decoding the contents of the file.
-#     """
-
-#     def to_internal_value(self, data):
-
-#         # Check if this is a base64 string
-#         if isinstance(data, six.string_types):
-
-#             # Check if the base64 string is in the "data:" format
-#             if "data:image" in data:
-#                 # Split the base64 string to get the data part of it
-#                 try:
-#                     image_str = data.split("base64,")[1]
-#                 except IndexError:
-#                     raise serializers.ValidationError(
-#                         "The image is invalid"
-#                     )
-
-#                 # Decode the base64 string
-#                 try:
-#                     decoded_file = base64.b64decode(image_str)
-#                 except TypeError:
-#                     raise serializers.ValidationError(
-#                         "The image is invalid"
-#                     )
-
-#                 # Generate file name:
-#                 file_name = str(uuid.uuid4())[:12]  # 12 characters are more than enough.
-#                 # Get the file name extension:
-#                 file_extension = self.get_file_extension(file_name, decoded_file)
-
-#                 complete_file_name = "%s.%s" % (file_name, file_extension,)
-
-#                 data = ContentFile(decoded_file, name=complete_file_name)
-
-#         return super(Base64ImageField, self).to_internal_value(data)
-
-#     def get_file_extension(self, file_name, decoded_file):
-
-#         extension = imghdr.what(file_name, decoded_file)
-#         extension = "jpg" if extension == "jpeg" else extension
-
-#         return extension
-    
-# # How to use the Base64ImageField in an APIView?
-# # class MyView(APIView):
-# #     serializer_class = MySerializer
 
