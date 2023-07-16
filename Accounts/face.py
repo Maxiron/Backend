@@ -25,30 +25,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 class RegisterFaceAPIView(APIView):
     permission_classes = (AllowAny,)
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser,)
     def post(self, request, format=None):
         # Load the MTCNN and FaceNet models
         mtcnn, facenet = Functions.load_models()
 
         # Get the uploaded image
         image_file = request.FILES.get('image')
-
-        # Check if the image is a base64 string
-        # if isinstance(image_file, six.string_types):
-        #     # Split the base64 string to get the data part of it
-        #     try:
-        #         image_str = image_file.split("base64,")[1]
-        #     except IndexError:
-        #         return Response({'message': 'Invalid base64 string'}, status=status.HTTP_400_BAD_REQUEST)
-
-        #     # Decode the base64 string
-        #     try:
-        #         image_file = base64.b64decode(image_str)
-        #     except TypeError:
-        #         return Response({'message': 'Invalid base64 string'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # # save the image to a temporary file
-        # temp_image = Functions.save_temp_image(image_file)
 
         # Get the email and use it to retrieve the user
         try:
@@ -144,9 +127,9 @@ class RecognizeCheckAPIView(APIView):
         '''
 
         # Detect faces in the image
-        # boxes, _ = mtcnn.detect(image)
+        boxes, _ = mtcnn.detect(image)
 
-        # '''
+        '''
         boxes, probs, points = mtcnn.detect(image, landmarks=True)
         # Draw boxes and save faces
         img_draw = image.copy()
@@ -157,7 +140,7 @@ class RecognizeCheckAPIView(APIView):
                 draw.rectangle((p - 10).tolist() + (p + 10).tolist(), width=10)
             extract_face(image, box, save_path='detected_face_{}.png'.format(i))
         img_draw.save('annotated_faces.png')
-        # '''
+        '''
         
 
         if boxes is None:
@@ -186,7 +169,7 @@ class RecognizeCheckAPIView(APIView):
         '''        
         x1, y1, x2, y2 = box
         
-        # '''
+        '''
         # Draw the bounding box around the detected face region and save the image
         draw = ImageDraw.Draw(image)
         draw.rectangle([(x1, y1), (x2, y2)], outline="red", width=2)
@@ -194,7 +177,7 @@ class RecognizeCheckAPIView(APIView):
         # Save the image with the bounding box
         image_with_box_path = 'image_with_box.jpg'
         image.save(image_with_box_path)
-        # '''
+        '''
 
 
         '''
@@ -203,9 +186,11 @@ class RecognizeCheckAPIView(APIView):
         '''
         face_image = image.crop((x1, y1, x2, y2))
 
+        '''
         # Save the cropped face image
         face_image_path = 'face_image.jpg'
         face_image.save(face_image_path)
+        '''
 
         '''
         Convert the cropped face image to a PyTorch tensor.
@@ -233,7 +218,6 @@ class RecognizeCheckAPIView(APIView):
 
         # Filter the Face embedding database table by Level and get the embeddings of all users in that level
         face_embeddings = FaceEmbedding.objects.filter(user__level=level)
-        # print(len(face_embeddings))
 
         # If there are no embeddings in the database, return a message
         if not face_embeddings:
