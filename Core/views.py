@@ -13,7 +13,7 @@ from django.db.models import Q
 
 # rest_framework imports
 from rest_framework import status
-from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -30,33 +30,24 @@ def index(request):
 
 
 class CustomPagination(PageNumberPagination):
-    page_size = 15
+    page_size = 10
 
 class AdminHomeAnalyticsAPIVIew(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        # Get total number of students
+        # Get total students, total verified students and total unverified students
         total_students = CustomUser.objects.filter(is_staff=False).count()
-
-        # Get total number of students with is_verified = True
-        total_verified_students = CustomUser.objects.filter(
-            is_staff=False, is_verified=True
-        ).count()
-
-        # Get total number of students with is_verified = False
-        total_unverified_students = CustomUser.objects.filter(
-            is_staff=False, is_verified=False
-        ).count()
+        total_verified_students = CustomUser.objects.filter(is_staff=False, is_verified=True).count()
+        total_unverified_students = CustomUser.objects.filter(is_staff=False, is_verified=False).count()
 
         response = {
             "message": "Success",
-            "data":
-                {
-                    "total_students": total_students,
-                    "total_verified_students": total_verified_students,
-                    "total_unverified_students": total_unverified_students,
-                }            
+            "data": {
+                "total_students": total_students,
+                "total_verified_students": total_verified_students,
+                "total_unverified_students": total_unverified_students,
+            }            
         }
 
         return Response(response, status=status.HTTP_200_OK)
@@ -64,7 +55,7 @@ class AdminHomeAnalyticsAPIVIew(APIView):
 
 
 class AdminStudentsAPIView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = CustomUserSerializer
     pagination_class = CustomPagination
 
@@ -75,11 +66,11 @@ class AdminStudentsAPIView(ListAPIView):
         filter_is_verified = self.request.query_params.get('status', None)
 
         # Filter students
-        queryset = CustomUser.objects.filter(is_staff=False)
+        queryset = CustomUser.objects.filter(is_staff=False).order_by("first_name")
 
         if search_name:
             # Add search by name
-            queryset = queryset.filter(Q(first_name__icontains=search_name) | Q(last_name__icontains=search_name))
+            queryset = queryset.filter(Q(first_name__icontains=search_name) | Q(last_name__icontains=search_name) | Q(middle_name__icontains=search_name))
 
         if filter_level:
             # Filter by level
@@ -98,9 +89,4 @@ class AdminStudentsAPIView(ListAPIView):
 
         return queryset
 
-    def list(self, request, *args, **kwargs):
-        # Get all students
-        queryset = self.get_queryset()
-        serializer = CustomUserSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
