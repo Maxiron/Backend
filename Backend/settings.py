@@ -108,7 +108,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "final_project",
         "PORT": "3306",
-        "HOST": "maxiron-final-project-mysql-server.mysql.database.azure.com",
+        "HOST": "eduverse-database.mysql.database.azure.com",
         "USER": "maxironfinalprojectadmin",
         "PASSWORD": "Database1234!",
     },
