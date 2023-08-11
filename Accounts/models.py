@@ -123,7 +123,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         # If picture is None
         if not self.profile_picture:
             return (
-                "https://res.cloudinary.com/dxyyxfosd/pyzjrq7bnywos6r9thpp"
+                "https://res.cloudinary.com/dhcprtb8k/image/upload/v1691789664/dummy-profile-image_fpig71.jpg"
             )
         return (
                 f"https://res.cloudinary.com/{config('CLOUDINARY_CLOUD_NAME')}/{self.profile_picture}"
