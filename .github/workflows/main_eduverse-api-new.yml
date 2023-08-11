@@ -65,6 +65,6 @@ jobs:
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
         with:
-          app-name: 'eduverse-api'
+          app-name: 'eduverse-api-new' 
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_ADA7FA3A654F44CFB866DF4E547D086A }}
