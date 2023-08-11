@@ -67,4 +67,4 @@ jobs:
         with:
           app-name: 'eduverse-api'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_73916E7F9C974B8A8BACFAA24B72CD30 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_ADA7FA3A654F44CFB866DF4E547D086A }}
