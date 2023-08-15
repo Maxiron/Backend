@@ -54,35 +54,42 @@ class RegistrationAPIView(APIView):
     renderer_classes = (UserJSONRenderer,)
 
     def post(self, request):
+        try:
 
-        # Get email from request
-        email = request.data["email"]
+            # Get email from request
+            email = request.data["email"]
 
-        # Check if email is valid
-        # if not Util.validate_email(email):
-        #     response = {
-        #         "status": False,
-        #         "message": "Please use your valid school email address (@futo.edu.ng)",
-        #     }
-        #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            # Check if email is valid
+            # if not Util.validate_email(email):
+            #     response = {
+            #         "status": False,
+            #         "message": "Please use your valid school email address (@futo.edu.ng)",
+            #     }
+            #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = self.serializer_class(data=request.data)
+            serializer = self.serializer_class(data=request.data)
 
-        if not serializer.is_valid():
-            response = {"status": "false", "message": serializer.errors}
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-       
-        # Save user to database
-        user = serializer.save()
-        user.is_active = True
-        user.save()
+            if not serializer.is_valid():
+                response = {"status": "false", "message": serializer.errors}
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+            # Save user to database
+            user = serializer.save()
+            user.is_active = True
+            user.save()
 
-        response = {
-            "status": True,
-            "email": email,
-            "message": "User registered successfully. Proceed to Verify Face.",
-        }
-        return Response(response, status=status.HTTP_200_OK)
+            response = {
+                "status": True,
+                "email": email,
+                "message": "User registered successfully. Proceed to Verify Face.",
+            }
+            return Response(response, status=status.HTTP_200_OK)
+        except Exception as e:
+            response = {
+                "status": False,
+                "message": str(e)
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST) 
 
 
 class LoginAPIView(APIView):

@@ -23,3 +23,7 @@ urlpatterns = [
     path("api/auth/", include("Accounts.urls")),
     path("api/core/", include("Core.urls")),
 ]
+
+# Handle 404 and 500 errors
+handler404 = "Core.views.error_404"
+handler500 = "Core.views.error_500"
