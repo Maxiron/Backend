@@ -10,6 +10,7 @@ from cloudinary.uploader import destroy
 from django.conf import settings
 from django.shortcuts import render
 from django.db.models import Q
+from django.http import JsonResponse
 
 # rest_framework imports
 from rest_framework import status
@@ -88,5 +89,22 @@ class AdminStudentsAPIView(ListAPIView):
             queryset = queryset.filter(is_verified=filter_is_verified)
 
         return queryset
+    
+
+
+def error_404(request, exception):
+    message = "This endpoint doesn't exist"
+
+    response = JsonResponse(data={"message": message, "status_code": 404})
+    response.status_code = 404
+    return response
+
+
+def error_500(request):
+    message = "An error occurred"
+
+    response = JsonResponse(data={"message": message})
+    response.status_code = 500
+    return response
 
 
