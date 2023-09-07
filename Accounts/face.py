@@ -78,6 +78,49 @@ class RegisterFaceAPIView(APIView):
             face_tensor = F.normalize(face_tensor, mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
             embedding = facenet(face_tensor.unsqueeze(0)).detach().numpy()[0]
 
+            # Check if a similar embedding already exists in the database using cosine similarity
+
+            # 1. Get all the face_embeddings 
+            face_embeddings = FaceEmbedding.objects.all()           
+
+            # Convert the byte embeddings from the database to NumPy arrays
+            existing_embeddings = [np.frombuffer(face_embedding.embedding, dtype=np.float32).reshape(1, -1) for face_embedding in face_embeddings]
+
+            # Concatenate the array of arrays into a single 2D array
+            existing_embeddings = np.concatenate(existing_embeddings, axis=0)
+
+            new_embedding = np.array(embedding).reshape(1, -1)
+
+            # Calculate the cosine similarity between the captured embedding and database embeddings
+            similarities = cosine_similarity(new_embedding, existing_embeddings)
+
+            # Find the index of the highest similarity
+            closest_index = np.argmax(similarities)
+            # print(closest_index)
+
+            # Check if the similarity is above a threshold
+            threshold = 0.65  # Adjust the threshold as needed
+            if similarities[0, closest_index] > threshold:
+                # Get the user corresponding to the highest similarity in the database
+                user_high = face_embeddings[closest_index.item()].user
+                print(user)
+                print(user_high)
+
+                # Get similarity score
+                similarity_score = similarities[0, closest_index].item()
+
+                # Convert the similarity score to a percentage
+                similarity_score_percentage = round(similarity_score * 100, 2)
+
+                # if user_high exists, and is not the same as the user, return a message
+                if user_high and user_high != user:
+                    response = {
+                        'status': 'failed',
+                        'message': 'Face already exists in database',
+                        'similarity_score': f"{similarity_score_percentage}%"
+                    }
+                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+                
 
             # Save the embeddings to a binary field in the database
             face_embedding = FaceEmbedding.objects.create(user=user)
