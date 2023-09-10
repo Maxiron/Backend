@@ -57,15 +57,7 @@ class RegistrationAPIView(APIView):
         try:
 
             # Get email from request
-            email = request.data["email"]
-
-            # Check if email is valid
-            # if not Util.validate_email(email):
-            #     response = {
-            #         "status": False,
-            #         "message": "Please use your valid school email address (@futo.edu.ng)",
-            #     }
-            #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            email = request.data["email"]        
 
             serializer = self.serializer_class(data=request.data)
 
