@@ -22,6 +22,7 @@ urlpatterns = [
     path("", index, name="index"),
     path("api/auth/", include("Accounts.urls")),
     path("api/core/", include("Core.urls")),
+    path("api/courses/", include("Courses.urls")),
 ]
 
 # Handle 404 and 500 errors
