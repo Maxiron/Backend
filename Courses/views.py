@@ -70,6 +70,14 @@ class RegisterCourseAPIView(APIView):
             try:
                 course = Course.objects.get(id=course_id)
 
+                # Check if the student has registered for the course before
+                if RegisteredCourse.objects.filter(student=student, course=course).exists():
+                    response = {
+                        'status': 'error',
+                        'message': f'You have already registered for {course.title}'
+                    }
+                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
                 # Add the course to the list of registered courses
                 registered_courses.append(course)
 
